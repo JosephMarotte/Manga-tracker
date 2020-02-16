@@ -180,6 +180,3 @@ class Mangadex:
                   % (mangatracker_resource_id, mangadex_chapter_id)
             cursor.execute(sql)
             connection.commit()
-
-
-Mangadex.get_title_data(939)
