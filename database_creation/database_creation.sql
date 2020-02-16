@@ -26,7 +26,7 @@ CREATE TABLE manga_id_to_chapter_id
     FOREIGN KEY (manga_id) REFERENCES manga_id_to_english_title(manga_id)
 );
 
--- A same chapter (same volume and same chapter) may be stored multiple time (ie : language / website)
+-- A same chapter (same volume and same chapter) may be stored multiple time (ie : language / website)
 CREATE TABLE chapter_id_to_resource_id
 (
     resource_id MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -35,6 +35,45 @@ CREATE TABLE chapter_id_to_resource_id
     language_abbr CHAR(3) NOT NULL, -- using iso 639-3 abbreviation
     PRIMARY KEY (resource_id),
     FOREIGN KEY (chapter_id) REFERENCES manga_id_to_chapter_id(chapter_id),
+    FOREIGN KEY (website_id) REFERENCES website_to_id_website(website_id)
+);
+
+-- Tables specific for the users
+CREATE TABLE users
+(
+    user_id MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    PRIMARY KEY (user_id)
+);
+
+CREATE TABLE user_followed_manga
+(
+    user_id MEDIUMINT UNSIGNED NOT NULL,
+    manga_id MEDIUMINT UNSIGNED NOT NULL,
+    next_volume_number_to_read MEDIUMINT UNSIGNED,
+    next_chapter_number_to_read DECIMAL(5, 1) NOT NULL,
+    PRIMARY KEY (user_id, manga_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (manga_id) REFERENCES manga_id_to_english_title(manga_id)
+);
+
+CREATE TABLE user_language_pref
+(
+    user_id MEDIUMINT UNSIGNED NOT NULL,
+    language_abbr CHAR(3) NOT NULL,
+    pref_order TINYINT UNSIGNED NOT NULL,
+    PRIMARY KEY (user_id, pref_order),
+    UNIQUE (user_id, language_abbr),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+CREATE TABLE user_website_pref
+(
+    user_id MEDIUMINT UNSIGNED NOT NULL,
+    website_id TINYINT UNSIGNED NOT NULL,
+    pref_order TINYINT UNSIGNED NOT NULL,
+    PRIMARY KEY (user_id, pref_order),
+    UNIQUE (user_id, website_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (website_id) REFERENCES website_to_id_website(website_id)
 );
 

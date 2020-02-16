@@ -4,7 +4,7 @@ import json
 import logging
 from src.mangadex.mangadex_utils import mangadex_abbr_to_mangatracker_abbr
 
-# TODO not have password / user hardcoded. And handle connection in a better way
+# TODO not have password / users hardcoded. And handle connection in a better way
 connection = pymysql.connect(host='localhost',
                              user='joseph',
                              password='dosaku',
@@ -39,9 +39,27 @@ class Mangadex:
         return "https://mangadex.org/api/chapter/%d" % mangadex_chapter_id
 
     @staticmethod
+    def retrieve_chapter_url(chapter):
+        """chapter = {'chapter_id': 374,
+                      'chapter_number': Decimal('12.0'),
+                      'language_abbr': 'eng',
+                      'resource_id': 1188,
+                      'volume_number': 2,
+                      'website_id': 1}"""
+        with connection.cursor() as cursor:
+            logging.info("Retrieving chapter information for resource %d of mangadex.")
+            sql = """SELECT mangadex_chapter_id
+                     FROM resource_id_to_mangadex_chapter_id
+                     WHERE resource_id = %d""" % chapter["resource_id"]
+            cursor.execute(sql)
+            result = cursor.fetchone()
+            mangadex_chapter_id = result["mangadex_chapter_id"]
+            return Mangadex.get_full_chapter_url(mangadex_chapter_id)
+
+    @staticmethod
     def get_title_data(mangadex_manga_id):
         # TODO add error case with the code
-        r = requests.get(mangadex.get_full_title_api_url(mangadex_manga_id), auth=('user', 'pass'))
+        r = requests.get(Mangadex.get_full_title_api_url(mangadex_manga_id), auth=('users', 'pass'))
 
         manga_data = json.loads(r.text)
         title = manga_data['manga']['title']
@@ -85,7 +103,7 @@ class Mangadex:
             chapter_data = manga_data['chapter'][str_mangadex_chapter_id]
             chapter_data['manga_id'] = mangadex_manga_id
             mangadex_chapter_id = int(str_mangadex_chapter_id) # int(str_mangadex_chapter_id)  # from str to int
-            mangadex.get_chapter_data_to_database(mangadex_chapter_id, True, chapter_data)
+            Mangadex.get_chapter_data_to_database(mangadex_chapter_id, True, chapter_data)
 
     @staticmethod
     def get_chapter_data_to_database(mangadex_chapter_id, check_if_already_in_database=True, chapter_data=None):
@@ -102,7 +120,7 @@ class Mangadex:
 
         if chapter_data is None:
             logging.info("Retrieving chapter data of chapter %d" % mangadex_chapter_id)
-            r = requests.get(mangadex.get_full_chapter_api_url(mangadex_chapter_id), auth=('user', 'pass'))
+            r = requests.get(Mangadex.get_full_chapter_api_url(mangadex_chapter_id), auth=('users', 'pass'))
             chapter_data = json.loads(r.text)
             logging.info("Chapter data of chapter %d were retrieved" % mangadex_chapter_id)
 
@@ -151,7 +169,7 @@ class Mangadex:
 
             language_abbr = mangadex_abbr_to_mangatracker_abbr(chapter_data["lang_code"])
             sql = "INSERT INTO chapter_id_to_resource_id(chapter_id, website_id, language_abbr) VALUES (%d, %d, '%s')" \
-                  % (mangatracker_chapter_id, mangadex.website_id_mangadex, language_abbr)
+                  % (mangatracker_chapter_id, Mangadex.website_id_mangadex, language_abbr)
             cursor.execute(sql)
             mangatracker_resource_id = cursor.lastrowid
             logging.info("Resource id for this chapter is %d" % mangatracker_resource_id)
@@ -162,3 +180,6 @@ class Mangadex:
                   % (mangatracker_resource_id, mangadex_chapter_id)
             cursor.execute(sql)
             connection.commit()
+
+
+Mangadex.get_title_data(939)
