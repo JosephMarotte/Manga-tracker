@@ -3,6 +3,7 @@
 website_names = [
                 "dummy_website",
                 "mangadex",
+                "leviathanscans"
                 ]
 
 name_already_seen = set()

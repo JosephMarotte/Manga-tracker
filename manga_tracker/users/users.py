@@ -1,7 +1,5 @@
 import logging
 import pymysql.cursors
-from src.users.create_feed_from_manga_list import create_feed
-from pprint import pprint
 
 # TODO not have password / users hardcoded. And handle connection in a better way
 connection = pymysql.connect(host='localhost',
@@ -88,67 +86,67 @@ class Users:
                 cursor.execute(sql)
         connection.commit()
 
-
-def retrieve_followed_manga(user_id):
-    # TODO try to make this query shorter
-    sql = \
-        """
-        SELECT mici.chapter_id,
-               ANY_VALUE(miet.title) as title,
-               ANY_VALUE(mici.volume_number) as volume_number,
-               ANY_VALUE(mici.chapter_number) as chapter_number,
-               ANY_VALUE(ciri.resource_id) as resource_id,
-               ANY_VALUE(ciri.website_id) as website_id,
-               ANY_VALUE(ciri.language_abbr) as language_abbr
-        FROM users u, user_followed_manga ufm, user_language_pref ulp, user_website_pref uwp, manga_id_to_chapter_id mici,
-             chapter_id_to_resource_id ciri, manga_id_to_english_title miet
-             JOIN (
-                 SELECT mici.chapter_id, MIN(ulp.pref_order) as score
-                 FROM users u, user_followed_manga ufm, user_language_pref ulp, user_website_pref uwp, manga_id_to_chapter_id mici,
-                      chapter_id_to_resource_id ciri
-                      JOIN (
-                             SELECT mici.chapter_id, MIN(uwp.pref_order) as score
-                             FROM users u, user_followed_manga ufm, user_language_pref ulp, user_website_pref uwp, manga_id_to_chapter_id mici,
-                                  chapter_id_to_resource_id ciri
-                             WHERE u.user_id = %d AND
-                                  ufm.user_id = u.user_id AND
-                                  ulp.user_id = u.user_id AND
-                                  uwp.user_id = u.user_id AND
-                                  ufm.manga_id = mici.manga_id AND
-                                  mici.chapter_id = ciri.chapter_id AND
-                                  ciri.language_abbr = ulp.language_abbr AND
-                                  ciri.website_id = uwp.website_id
-                             GROUP BY mici.chapter_id
-                           ) best_score
-                 WHERE u.user_id = %d AND
-                      ufm.user_id = u.user_id AND
-                      ulp.user_id = u.user_id AND
-                      uwp.user_id = u.user_id AND
-                      ufm.manga_id = mici.manga_id AND
-                      mici.chapter_id = ciri.chapter_id AND
-                      ciri.language_abbr = ulp.language_abbr AND
-                      ciri.website_id = uwp.website_id AND
-                      best_score.score = uwp.pref_order AND
-                      best_score.chapter_id = ciri.chapter_id
-                 GROUP BY mici.chapter_id
-                 ) best_score
-        WHERE u.user_id = %d AND
-              ufm.user_id = u.user_id AND
-              ulp.user_id = u.user_id AND
-              uwp.user_id = u.user_id AND
-              ufm.manga_id = mici.manga_id AND
-              (ufm.next_volume_number_to_read < mici.volume_number 
-               OR
-               ufm.next_volume_number_to_read = mici.volume_number AND ufm.next_chapter_number_to_read <= mici.chapter_number) AND
-              mici.chapter_id = ciri.chapter_id AND
-              ciri.language_abbr = ulp.language_abbr AND
-              ciri.website_id = uwp.website_id AND
-              best_score.chapter_id = ciri.chapter_id AND
-              best_score.score = ulp.pref_order AND
-              miet.manga_id = mici.manga_id
-        GROUP BY mici.chapter_id
-        """ % (user_id, user_id, user_id)
-    with connection.cursor() as cursor:
-        cursor.execute(sql)
-        result = cursor.fetchall()
-        return result
+    def retrieve_followed_manga(self):
+        # TODO try to make this query shorter
+        sql = \
+            """
+            SELECT mici.chapter_id,
+                   ANY_VALUE(ufm.manga_id) as manga_id, 
+                   ANY_VALUE(miet.title) as title,
+                   ANY_VALUE(mici.volume_number) as volume_number,
+                   ANY_VALUE(mici.chapter_number) as chapter_number,
+                   ANY_VALUE(ciri.resource_id) as resource_id,
+                   ANY_VALUE(ciri.website_id) as website_id,
+                   ANY_VALUE(ciri.language_abbr) as language_abbr
+            FROM users u, user_followed_manga ufm, user_language_pref ulp, user_website_pref uwp, manga_id_to_chapter_id mici,
+                 chapter_id_to_resource_id ciri, manga_id_to_english_title miet
+                 JOIN (
+                     SELECT mici.chapter_id, MIN(ulp.pref_order) as score
+                     FROM users u, user_followed_manga ufm, user_language_pref ulp, user_website_pref uwp, manga_id_to_chapter_id mici,
+                          chapter_id_to_resource_id ciri
+                          JOIN (
+                                 SELECT mici.chapter_id, MIN(uwp.pref_order) as score
+                                 FROM users u, user_followed_manga ufm, user_language_pref ulp, user_website_pref uwp, manga_id_to_chapter_id mici,
+                                      chapter_id_to_resource_id ciri
+                                 WHERE u.user_id = %d AND
+                                      ufm.user_id = u.user_id AND
+                                      ulp.user_id = u.user_id AND
+                                      uwp.user_id = u.user_id AND
+                                      ufm.manga_id = mici.manga_id AND
+                                      mici.chapter_id = ciri.chapter_id AND
+                                      ciri.language_abbr = ulp.language_abbr AND
+                                      ciri.website_id = uwp.website_id
+                                 GROUP BY mici.chapter_id
+                               ) best_score
+                     WHERE u.user_id = %d AND
+                          ufm.user_id = u.user_id AND
+                          ulp.user_id = u.user_id AND
+                          uwp.user_id = u.user_id AND
+                          ufm.manga_id = mici.manga_id AND
+                          mici.chapter_id = ciri.chapter_id AND
+                          ciri.language_abbr = ulp.language_abbr AND
+                          ciri.website_id = uwp.website_id AND
+                          best_score.score = uwp.pref_order AND
+                          best_score.chapter_id = ciri.chapter_id
+                     GROUP BY mici.chapter_id
+                     ) best_score
+            WHERE u.user_id = %d AND
+                  ufm.user_id = u.user_id AND
+                  ulp.user_id = u.user_id AND
+                  uwp.user_id = u.user_id AND
+                  ufm.manga_id = mici.manga_id AND
+                  (ufm.next_volume_number_to_read < mici.volume_number 
+                   OR
+                   ufm.next_volume_number_to_read = mici.volume_number AND ufm.next_chapter_number_to_read <= mici.chapter_number) AND
+                  mici.chapter_id = ciri.chapter_id AND
+                  ciri.language_abbr = ulp.language_abbr AND
+                  ciri.website_id = uwp.website_id AND
+                  best_score.chapter_id = ciri.chapter_id AND
+                  best_score.score = ulp.pref_order AND
+                  miet.manga_id = mici.manga_id
+            GROUP BY mici.chapter_id
+            """ % (self.user_id, self.user_id, self.user_id)
+        with connection.cursor() as cursor:
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            return result

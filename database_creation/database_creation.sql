@@ -96,3 +96,13 @@ CREATE TABLE resource_id_to_mangadex_chapter_id
     FOREIGN KEY (resource_id) REFERENCES chapter_id_to_resource_id(resource_id),
     UNIQUE (resource_id)
 );
+
+-- Tables specific to leviathanscans
+CREATE TABLE mangatracker_manga_id_to_leviathanscans_manga_id
+(
+  mangatracker_manga_id MEDIUMINT UNSIGNED NOT NULL,
+  leviathanscans_manga_id VARCHAR(100) NOT NULL, -- 100 seems to be enough in size for now
+  PRIMARY KEY(mangatracker_manga_id),
+  FOREIGN KEY(mangatracker_manga_id) REFERENCES manga_id_to_english_title(manga_id),
+  UNIQUE (leviathanscans_manga_id)
+);

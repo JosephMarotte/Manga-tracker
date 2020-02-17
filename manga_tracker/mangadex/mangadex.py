@@ -2,7 +2,7 @@ import pymysql.cursors
 import requests
 import json
 import logging
-from src.mangadex.mangadex_utils import mangadex_abbr_to_mangatracker_abbr
+from manga_tracker.mangadex.mangadex_utils import mangadex_abbr_to_mangatracker_abbr
 
 # TODO not have password / users hardcoded. And handle connection in a better way
 connection = pymysql.connect(host='localhost',
@@ -47,7 +47,7 @@ class Mangadex:
                       'volume_number': 2,
                       'website_id': 1}"""
         with connection.cursor() as cursor:
-            logging.info("Retrieving chapter information for resource %d of mangadex.")
+            logging.info("Retrieving chapter information for resource %d of mangadex." % chapter["resource_id"])
             sql = """SELECT mangadex_chapter_id
                      FROM resource_id_to_mangadex_chapter_id
                      WHERE resource_id = %d""" % chapter["resource_id"]
