@@ -1,7 +1,8 @@
 import scrapy
-import logging
 from manga_tracker.matching_between_website_and_website_id import website_to_website_id
 from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
+from manga_tracker.database import database_query
+from manga_tracker.leviathanscans import levianthanscans_database_query
 
 connection = MangatrackerDatabase().instance.connection
 
@@ -15,48 +16,19 @@ class LeviathanscansSpider(scrapy.Spider):
             yield response.follow(manga_url, callback=self.parse_manga_page)
 
     def parse_manga_page(self, response):
-        leviathanscans_manga_id = response.url.split("/")[-1]
-
-        logging.info("Checking whether leviathanscans manga %s is in our database" % leviathanscans_manga_id)
         with connection.cursor() as cursor:
-            sql = """SELECT mangatracker_manga_id
-                     FROM mangatracker_manga_id_to_leviathanscans_manga_id
-                     WHERE leviathanscans_manga_id LIKE '%s'""" % leviathanscans_manga_id
-            cursor.execute(sql)
-            mangatracker_manga_id = cursor.fetchone()
+            leviathanscans_manga_id = response.url.split("/")[-1]
+            mangatracker_manga_id = levianthanscans_database_query. \
+                select_mangatracker_manga_id_from_leviathanscans_manga_id(leviathanscans_manga_id, cursor)
             if mangatracker_manga_id is None:
-                logging.info("Leviathanscans manga %s is not in our database" % leviathanscans_manga_id)
-                logging.info("Adding leviathanscans manga %s to our database" % leviathanscans_manga_id)
                 title = response.xpath("//title/text()")[1].extract().lower()
-                logging.info("Checking whether title %s is in our database", title)
-                sql = """SELECT manga_id
-                         FROM manga_id_to_english_title
-                         WHERE title LIKE %s"""
-                cursor.execute(sql, title)
-                mangatracker_manga_id = cursor.fetchone()
-
+                mangatracker_manga_id = database_query.select_manga_id_of_title(title, cursor)
                 if mangatracker_manga_id is None:
-                    logging.info("The title %s is not in our database, adding it to the database" % title)
-                    sql = """INSERT INTO manga_id_to_english_title(title) VALUES (%s)"""
-                    cursor.execute(sql, title)
-                    mangatracker_manga_id = cursor.lastrowid
-                    connection.commit()
-                    logging.info("The title %s has been added to the database with id %d"
-                                 % (title, mangatracker_manga_id))
-                else:  # unwrap needed
-                    mangatracker_manga_id = mangatracker_manga_id["manga_id"]
-                logging.info("Adding matching between mangatracker_manga_id %d and leviathanscans_manga_id %s"
-                             % (mangatracker_manga_id, leviathanscans_manga_id))
-                sql = "INSERT INTO mangatracker_manga_id_to_leviathanscans_manga_id(mangatracker_manga_id, leviathanscans_manga_id) \
-                       VALUES (%s, %s)"
-                cursor.execute(sql, (mangatracker_manga_id, leviathanscans_manga_id))
-                connection.commit()
-                logging.info("Matching between mangatracker_manga_id %d and leviathanscans_manga_id %s was added"
-                             % (mangatracker_manga_id, leviathanscans_manga_id))
-            else:
-                logging.info("Leviathanscans manga %s is already in our database" % leviathanscans_manga_id)
-                mangatracker_manga_id = mangatracker_manga_id["mangatracker_manga_id"]
-
+                    mangatracker_manga_id = database_query.insert_title(title, cursor)
+                levianthanscans_database_query. \
+                    insert_mangatracker_manga_id_to_leviathanscans_manga_id(mangatracker_manga_id,
+                                                                            leviathanscans_manga_id,
+                                                                            cursor)
         # add every chapter to the database
         for chapter_url in response.xpath("//a[contains(text(), 'Chapter')]/@href").extract():
             chapter_url = chapter_url.split("/")
@@ -66,41 +38,13 @@ class LeviathanscansSpider(scrapy.Spider):
             self.get_chapter_data_to_database(chapter_data)
 
     def get_chapter_data_to_database(self, chapter_data, check_if_already_in_database=True):
-        logging.info("Check if there is a mangatracker_chapter_id for this chapter")  # TODO
-
         with connection.cursor() as cursor:
-            sql = """SELECT chapter_id
-                     FROM manga_id_to_chapter_id
-                     WHERE manga_id = %s AND
-                           volume_number = %s AND
-                           chapter_number = %s
-                           """
-            cursor.execute(sql, (chapter_data['manga_id'], chapter_data['volume'], chapter_data['chapter']))
-            mangatracker_chapter_id = cursor.fetchone()
+            function_arg = chapter_data['manga_id'], chapter_data['volume'], chapter_data['chapter'], cursor
+            mangatracker_chapter_id = database_query.select_chapter_id_from_manga_volume_chapter(*function_arg)
             if mangatracker_chapter_id is None:
-                logging.info("There was no mangatracker chapter_id for this chapter, adding it to the database")  # TODO
-                sql = "INSERT INTO manga_id_to_chapter_id(manga_id, volume_number, chapter_number) VALUES (%s, %s, %s)"
-                cursor.execute(sql, (chapter_data['manga_id'], chapter_data['volume'], chapter_data['chapter']))
-                connection.commit()
-                logging.info("Mangatracker chapter_id for this chapter was added to the database")  # TODO
-                mangatracker_chapter_id = cursor.lastrowid
-            else:
-                mangatracker_chapter_id = mangatracker_chapter_id["chapter_id"] # unwrap
+                mangatracker_chapter_id = database_query.insert_manga_id_to_chapter_id(*function_arg)
 
-        if check_if_already_in_database:
-            # On leviathanscans only one same chapter for a specific manga
-            sql = """SELECT 1
-                     FROM chapter_id_to_resource_id
-                     WHERE chapter_id = %s AND
-                           website_id = %s AND
-                           language_abbr = %s"""
-            with connection.cursor() as cursor:
-                cursor.execute(sql, (str(mangatracker_chapter_id), str(website_to_website_id[self.name]), 'eng'))
-                result = cursor.fetchone()
-                if result is not None:
-                    logging.info("This chapter is already in the database")
-                    return
-        with connection.cursor() as cursor:
-            sql = """INSERT INTO chapter_id_to_resource_id(chapter_id, website_id, language_abbr) VALUES (%s, %s, %s)"""
-            cursor.execute(sql, (str(mangatracker_chapter_id), str(website_to_website_id[self.name]), 'eng'))
-            connection.commit()
+            if check_if_already_in_database:
+                function_arg = mangatracker_chapter_id, website_to_website_id[self.name], 'eng', cursor
+                if not levianthanscans_database_query.check_if_chapter_already_in_database(*function_arg):
+                    database_query.insert_chapter_id_to_resource_id(*function_arg)

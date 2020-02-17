@@ -21,7 +21,7 @@ class Users:
             cursor.execute(sql)
             user_id = cursor.lastrowid
         connection.commit()
-        logging.info("The new user id is %d" )
+        logging.info("The new user id is %d")
         return user_id
 
     def add_new_followed_manga_list(self, manga_id_list):
@@ -56,14 +56,13 @@ class Users:
         with connection.cursor() as cursor:
             sql = "DELETE FROM user_website_pref WHERE user_id = %d" % self.user_id
             cursor.execute(sql)
-        connection.commit()
-        # 2) Add new website ranking
-        with connection.cursor() as cursor:
+            connection.commit()
+            # 2) Add new website ranking
             for (rank, website_id) in enumerate(website_id_ranking):
                 sql = "INSERT INTO user_website_pref(user_id, website_id, pref_order) VALUES (%d, %d, %d)"\
                       % (self.user_id, website_id, rank)
                 cursor.execute(sql)
-        connection.commit()
+            connection.commit()
 
     def rank_language_pref(self, language_abbr_ranking):
         # TODO this can probably be improved
@@ -71,14 +70,13 @@ class Users:
         with connection.cursor() as cursor:
             sql = "DELETE FROM user_language_pref WHERE user_id = %d" % self.user_id
             cursor.execute(sql)
-        connection.commit()
-        # 2) Add new abbr ranking
-        with connection.cursor() as cursor:
+            connection.commit()
+            # 2) Add new abbr ranking
             for (rank, language_abbr) in enumerate(language_abbr_ranking):
                 sql = "INSERT INTO user_language_pref(user_id, language_abbr, pref_order) VALUES (%d, '%s', %d)"\
                       % (self.user_id, language_abbr, rank)
                 cursor.execute(sql)
-        connection.commit()
+            connection.commit()
 
     def retrieve_followed_manga(self):
         # TODO try to make this query shorter
