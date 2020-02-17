@@ -1,6 +1,6 @@
 import logging
 from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
-
+from manga_tracker.users import users_database_query
 connection = MangatrackerDatabase().instance.connection
 
 
@@ -31,11 +31,7 @@ class Users:
     def add_new_followed_manga(self, manga_id):
         logging.info("Adding manga_id %d to the followed manga of user %d" % (manga_id, self.user_id))
         with connection.cursor() as cursor:
-            sql = "INSERT IGNORE INTO user_followed_manga(user_id, manga_id, next_volume_number_to_read, next_chapter_number_to_read)" \
-                  "VALUES (%d, %d, 0, 0)" % (self.user_id, manga_id)
-            cursor.execute(sql)
-        connection.commit()
-        logging.info("Manga_id %d was added to the followed manga of user %d" % (manga_id, self.user_id))
+            users_database_query.insert_followed_manga(self.user_id, manga_id, "0.0", 0)
 
     def change_followed_manga(self, manga_id, new_volume_number, new_chapter_number):
         logging.info("Changing last volume number and chapter number for manga_id %d of user %d" % (manga_id, self.user_id))
@@ -51,32 +47,16 @@ class Users:
 
     # TODO maybe try to merge the code of rank_website_pref and rank_language_pref
     def rank_website_pref(self, website_id_ranking):
-        # TODO this can probably be improved
-        # 1) delete previous website ranking
         with connection.cursor() as cursor:
-            sql = "DELETE FROM user_website_pref WHERE user_id = %d" % self.user_id
-            cursor.execute(sql)
-            connection.commit()
-            # 2) Add new website ranking
+            users_database_query.delete_user_website_pref(self.user_id, cursor)
             for (rank, website_id) in enumerate(website_id_ranking):
-                sql = "INSERT INTO user_website_pref(user_id, website_id, pref_order) VALUES (%d, %d, %d)"\
-                      % (self.user_id, website_id, rank)
-                cursor.execute(sql)
-            connection.commit()
+                users_database_query.insert_user_website_pref(self.user_id, website_id, rank, cursor)
 
     def rank_language_pref(self, language_abbr_ranking):
-        # TODO this can probably be improved
-        # 1) delete previous abbr ranking
         with connection.cursor() as cursor:
-            sql = "DELETE FROM user_language_pref WHERE user_id = %d" % self.user_id
-            cursor.execute(sql)
-            connection.commit()
-            # 2) Add new abbr ranking
+            users_database_query.delete_user_language_pref(self.user_id, cursor)
             for (rank, language_abbr) in enumerate(language_abbr_ranking):
-                sql = "INSERT INTO user_language_pref(user_id, language_abbr, pref_order) VALUES (%d, '%s', %d)"\
-                      % (self.user_id, language_abbr, rank)
-                cursor.execute(sql)
-            connection.commit()
+                users_database_query.insert_user_language_pref(self.user_id, language_abbr, rank, cursor)
 
     def retrieve_followed_manga(self):
         # TODO try to make this query shorter
