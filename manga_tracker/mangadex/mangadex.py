@@ -3,15 +3,9 @@ import requests
 import json
 import logging
 from manga_tracker.mangadex.mangadex_utils import mangadex_abbr_to_mangatracker_abbr
+from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
 
-# TODO not have password / users hardcoded. And handle connection in a better way
-connection = pymysql.connect(host='localhost',
-                             user='joseph',
-                             password='dosaku',
-                             db='manga_tracker',
-                             charset='utf8mb4',
-                             cursorclass=pymysql.cursors.DictCursor)
-
+connection = MangatrackerDatabase().instance.connection
 
 MANGADEX = "mangadex"
 

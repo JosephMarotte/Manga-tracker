@@ -1,13 +1,7 @@
 import logging
-import pymysql.cursors
+from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
 
-# TODO not have password / users hardcoded. And handle connection in a better way
-connection = pymysql.connect(host='localhost',
-                             user='joseph',
-                             password='dosaku',
-                             db='manga_tracker',
-                             charset='utf8mb4',
-                             cursorclass=pymysql.cursors.DictCursor)
+connection = MangatrackerDatabase().instance.connection
 
 
 class Users:

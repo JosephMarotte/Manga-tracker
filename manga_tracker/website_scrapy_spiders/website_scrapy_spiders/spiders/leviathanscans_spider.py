@@ -1,15 +1,9 @@
 import scrapy
 import logging
-import pymysql
-import sys
 from manga_tracker.matching_between_website_and_website_id import website_to_website_id
+from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
 
-connection = pymysql.connect(host='localhost',
-                             user='joseph',
-                             password='dosaku',
-                             db='manga_tracker',
-                             charset='utf8mb4',
-                             cursorclass=pymysql.cursors.DictCursor)
+connection = MangatrackerDatabase().instance.connection
 
 
 class LeviathanscansSpider(scrapy.Spider):
