@@ -97,12 +97,22 @@ CREATE TABLE resource_id_to_mangadex_chapter_id
     UNIQUE (resource_id)
 );
 
--- Tables specific to leviathanscans
-CREATE TABLE mangatracker_manga_id_to_leviathanscans_manga_id
+-- Tables specific to leviatanscans
+CREATE TABLE mangatracker_manga_id_to_leviatanscans_manga_id
 (
   mangatracker_manga_id MEDIUMINT UNSIGNED NOT NULL,
-  leviathanscans_manga_id VARCHAR(100) NOT NULL, -- 100 seems to be enough in size for now
+  leviatanscans_manga_id VARCHAR(100) NOT NULL, -- 100 seems to be enough in size for now
   PRIMARY KEY(mangatracker_manga_id),
   FOREIGN KEY(mangatracker_manga_id) REFERENCES manga_id_to_english_title(manga_id),
-  UNIQUE (leviathanscans_manga_id)
+  UNIQUE (leviatanscans_manga_id)
+);
+
+-- Tables specific to zeroscans
+CREATE TABLE mangatracker_manga_id_to_zeroscans_manga_id
+(
+  mangatracker_manga_id MEDIUMINT UNSIGNED NOT NULL,
+  zeroscans_manga_id VARCHAR(100) NOT NULL, -- 100 seems to be enough in size for now
+  PRIMARY KEY(mangatracker_manga_id),
+  FOREIGN KEY(mangatracker_manga_id) REFERENCES manga_id_to_english_title(manga_id),
+  UNIQUE (zeroscans_manga_id)
 );

@@ -31,7 +31,7 @@ class Users:
     def add_new_followed_manga(self, manga_id):
         logging.info("Adding manga_id %d to the followed manga of user %d" % (manga_id, self.user_id))
         with connection.cursor() as cursor:
-            users_database_query.insert_followed_manga(self.user_id, manga_id, "0.0", 0)
+            users_database_query.insert_followed_manga(self.user_id, manga_id, "0.0", 0, cursor)
 
     def change_followed_manga(self, manga_id, new_volume_number, new_chapter_number):
         logging.info("Changing last volume number and chapter number for manga_id %d of user %d" % (manga_id, self.user_id))
@@ -119,6 +119,8 @@ class Users:
             GROUP BY mici.chapter_id
             """ % (self.user_id, self.user_id, self.user_id)
         with connection.cursor() as cursor:
+            from pprint import pprint
             cursor.execute(sql)
             result = cursor.fetchall()
+            pprint(result)
             return result

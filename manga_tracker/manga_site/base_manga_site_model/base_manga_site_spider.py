@@ -2,33 +2,43 @@ import scrapy
 from manga_tracker.matching_between_website_and_website_id import website_to_website_id
 from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
 from manga_tracker.database import database_query
-from manga_tracker.leviathanscans import levianthanscans_database_query
 
 connection = MangatrackerDatabase().instance.connection
 
 
-class LeviathanscansSpider(scrapy.Spider):
-    name = "leviathanscans"
-    start_urls = ['https://leviatanscans.com/comics']
+class BaseMangaSiteSpider(scrapy.Spider):
+    name = "base_manga_site_model"
+    start_urls = []
+
+    basic_manga_site_database_query = None
 
     def parse(self, response):
-        for manga_url in response.xpath('//div[@class="media media-comic-card"]/a[@class][@href]/@href').extract():
+        equal_position = response.url.find("=") + 1
+        if equal_position == 0:
+            next_comics_page_number = response.url + "?page=2"
+        else:
+            next_comics_page_number = response.url[:equal_position] + str((int(response.url[equal_position:]) + 1))
+
+        manga_urls = response.xpath('//div[@class="media media-comic-card"]/a[@class][@href]/@href').extract()
+        for manga_url in manga_urls:
             yield response.follow(manga_url, callback=self.parse_manga_page)
+        if len(manga_urls) > 0:
+            yield response.follow(next_comics_page_number, callback=self.parse)
 
     def parse_manga_page(self, response):
         with connection.cursor() as cursor:
             leviathanscans_manga_id = response.url.split("/")[-1]
-            mangatracker_manga_id = levianthanscans_database_query. \
-                select_mangatracker_manga_id_from_leviathanscans_manga_id(leviathanscans_manga_id, cursor)
+            mangatracker_manga_id = self.basic_manga_site_database_query. \
+                select_mangatracker_manga_id_from_base_manga_site_manga_id(leviathanscans_manga_id, cursor)
             if mangatracker_manga_id is None:
                 title = response.xpath("//title/text()")[1].extract().lower()
                 mangatracker_manga_id = database_query.select_manga_id_of_title(title, cursor)
                 if mangatracker_manga_id is None:
                     mangatracker_manga_id = database_query.insert_title(title, cursor)
-                levianthanscans_database_query. \
-                    insert_mangatracker_manga_id_to_leviathanscans_manga_id(mangatracker_manga_id,
-                                                                            leviathanscans_manga_id,
-                                                                            cursor)
+                self.basic_manga_site_database_query. \
+                    insert_mangatracker_manga_id_to_base_manga_site_manga_id(mangatracker_manga_id,
+                                                                             leviathanscans_manga_id,
+                                                                             cursor)
         # add every chapter to the database
         for chapter_url in response.xpath("//a[contains(text(), 'Chapter')]/@href").extract():
             chapter_url = chapter_url.split("/")
@@ -46,5 +56,5 @@ class LeviathanscansSpider(scrapy.Spider):
 
             if check_if_already_in_database:
                 function_arg = mangatracker_chapter_id, website_to_website_id[self.name], 'eng', cursor
-                if not levianthanscans_database_query.check_if_chapter_already_in_database(*function_arg):
+                if not self.basic_manga_site_database_query.check_if_chapter_already_in_database(*function_arg):
                     database_query.insert_chapter_id_to_resource_id(*function_arg)

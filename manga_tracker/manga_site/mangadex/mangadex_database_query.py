@@ -12,7 +12,7 @@ select_mangadex_chapter_id_from_resource_id_sql_query = """SELECT mangadex_chapt
 def select_mangadex_chapter_id_from_resource_id(resource_id, cursor):
     resource_id = str(resource_id)
     logging.info("Retrieving chapter information for resource %s of mangadex." % resource_id)
-    cursor.execute(sql, resource_id)
+    cursor.execute(select_mangadex_chapter_id_from_resource_id_sql_query, resource_id)
     return cursor.fetchone()["mangadex_chapter_id"]
 
 

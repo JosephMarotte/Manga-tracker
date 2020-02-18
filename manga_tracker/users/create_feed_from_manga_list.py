@@ -1,8 +1,5 @@
 from feedgen.feed import FeedGenerator
 from manga_tracker.matching_between_website_and_website_id import website_id_to_website
-from manga_tracker.mangadex.mangadex import Mangadex
-from manga_tracker.leviathanscans.leviathanscans import Leviathanscans
-from decimal import *
 
 
 # Manga list returned by retrieve_followed_manga
