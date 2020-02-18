@@ -1,7 +1,7 @@
 import requests
 import json
 import logging
-from manga_tracker.manga_site.mangadex import mangadex_abbr_to_mangatracker_abbr
+from manga_tracker.manga_site.mangadex.mangadex_utils import mangadex_abbr_to_mangatracker_abbr
 from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
 from manga_tracker.database import database_query
 from manga_tracker.manga_site.mangadex import mangadex_database_query
