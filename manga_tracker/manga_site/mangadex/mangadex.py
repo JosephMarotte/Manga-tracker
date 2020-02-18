@@ -13,7 +13,7 @@ MANGADEX = "mangadex"
 
 class Mangadex:
     # TODO take into account this siteRateLimit
-    siteRateLimit = 600  # 600 in 600s
+    siteRateLimit = 450  # 450 in 600s
     # TODO automatically generate website id first time class is seen
     website_id_mangadex = 1
 
@@ -42,29 +42,53 @@ class Mangadex:
             return Mangadex.get_full_chapter_url(mangadex_chapter_id)
 
     @staticmethod
-    def get_title_data(mangadex_manga_id):
-        # TODO add error case with the code
-        r = requests.get(Mangadex.get_full_title_api_url(mangadex_manga_id), auth=('users', 'pass'))
-
-        manga_data = json.loads(r.text)
-        title = manga_data['manga']['title'].lower()
-
-        # check whether the mangadex title exists or not
+    def get_new_data():
         with connection.cursor() as cursor:
-            if not mangadex_database_query.check_if_mangadex_manga_id_is_in_database(mangadex_manga_id, cursor):
-                mangatracker_manga_id = database_query.select_manga_id_of_title(title, cursor)
-                if mangatracker_manga_id is None:
-                    mangatracker_manga_id = database_query.insert_title(title, cursor)
-                mangadex_database_query.insert_mangatracker_manga_id_to_mangadex_manga_id(mangatracker_manga_id,
-                                                                                          mangadex_manga_id,
-                                                                                          cursor)
+            max_manga_id = mangadex_database_query.get_max_mangadex_manga_id(cursor)
+            max_chapter_id = mangadex_database_query.get_max_mangadex_chapter_id(cursor)
+        Mangadex.get_new_title_data(max_manga_id + 1)
+        Mangadex.get_new_chapter_data(max_chapter_id + 1)
 
-        print("ici")
-        for str_mangadex_chapter_id in manga_data['chapter']:
-            chapter_data = manga_data['chapter'][str_mangadex_chapter_id]
-            chapter_data['manga_id'] = mangadex_manga_id
-            mangadex_chapter_id = int(str_mangadex_chapter_id) # int(str_mangadex_chapter_id)  # from str to int
-            Mangadex.get_chapter_data_to_database(mangadex_chapter_id, True, chapter_data)
+    @staticmethod
+    def get_new_title_data(first_title_id_to_add):
+        while Mangadex.get_title_data(first_title_id_to_add):
+            first_title_id_to_add += 1
+
+    @staticmethod
+    def get_new_chapter_data(first_chapter_id_to_add):
+        while Mangadex.get_chapter_data_to_database(first_chapter_id_to_add):
+            first_chapter_id_to_add += 1
+
+    @staticmethod
+    def get_title_data(mangadex_manga_id):
+        """
+        :param mangadex_manga_id: The mangadex manga id to retrieve data for
+        :return: whether there is a next manga to process or not
+        """
+        r = requests.get(Mangadex.get_full_title_api_url(mangadex_manga_id), auth=('users', 'pass'))
+        if r.status_code == 200:
+            manga_data = json.loads(r.text)
+            title = manga_data['manga']['title'].lower()
+
+            with connection.cursor() as cursor:
+                if not mangadex_database_query.check_if_mangadex_manga_id_is_in_database(mangadex_manga_id, cursor):
+                    mangatracker_manga_id = database_query.select_manga_id_of_title(title, cursor)
+                    if mangatracker_manga_id is None:
+                        mangatracker_manga_id = database_query.insert_title(title, cursor)
+                    mangadex_database_query.insert_mangatracker_manga_id_to_mangadex_manga_id(mangatracker_manga_id,
+                                                                                              mangadex_manga_id,
+                                                                                              cursor)
+
+            for str_mangadex_chapter_id in manga_data['chapter']:
+                chapter_data = manga_data['chapter'][str_mangadex_chapter_id]
+                chapter_data['manga_id'] = mangadex_manga_id
+                mangadex_chapter_id = int(str_mangadex_chapter_id)
+                Mangadex.get_chapter_data_to_database(mangadex_chapter_id, True, chapter_data)
+            return True
+        elif r.status_code == 404:
+            return False
+        elif r.status_code == 410:
+            return True
 
     @staticmethod
     def get_chapter_data_to_database(mangadex_chapter_id, check_if_already_in_database=True, chapter_data=None):
@@ -72,12 +96,17 @@ class Mangadex:
         with connection.cursor() as cursor:
             if check_if_already_in_database:
                 if mangadex_database_query.check_if_mangadex_chapter_id_is_in_database(mangadex_chapter_id, cursor):
-                    return
+                    return True
 
             if chapter_data is None:
                 logging.info("Retrieving chapter data of chapter %d" % mangadex_chapter_id)
                 r = requests.get(Mangadex.get_full_chapter_api_url(mangadex_chapter_id), auth=('users', 'pass'))
-                chapter_data = json.loads(r.text)
+                if r.status_code == 200:
+                    chapter_data = json.loads(r.text)
+                elif r.status_code == 404:
+                    return False
+                elif r.status_code == 410:
+                    return True
                 logging.info("Chapter data of chapter %d were retrieved" % mangadex_chapter_id)
 
             # In some case volume and chapter are empty (for example for oneshots). Artificially build it.
@@ -106,3 +135,5 @@ class Mangadex:
             mangadex_database_query.insert_mangatracker_resource_id_to_mangadex_chapter_id(mangatracker_resource_id,
                                                                                            mangadex_chapter_id,
                                                                                            cursor)
+        return True
+
