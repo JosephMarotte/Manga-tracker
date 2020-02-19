@@ -77,6 +77,7 @@ CREATE TABLE user_website_pref
     FOREIGN KEY (website_id) REFERENCES website_to_id_website(website_id)
 );
 
+-- TODO Move this to mangadex table creation
 -- Table specific to retrieve the resource on different trackers
 -- Tables specific to mangadex
 CREATE TABLE manga_id_mangadex_to_manga_id_mangatracker

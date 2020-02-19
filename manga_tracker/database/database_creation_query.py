@@ -21,11 +21,17 @@ create_database_sql_query = """CREATE DATABASE %s"""
 def create_database(database_name, cursor):
     logging.info("Creating database {}".format(database_name))
     print(create_database_sql_query % database_name)
-    cursor.execute(create_database_sql_query, database_name)
+    cursor.execute(create_database_sql_query % database_name)
     logging.info("Database {} created".format(database_name))
 
 
-show_tables_sql_query = """SHOW TABLES"""
+def create_initial_tables(cursor):
+    with open("database_creation.sql", "r") as f:
+        queries = f.read()
+    for query in queries.split(";")[:-1]:
+        print(query)
+        cursor.execute(query)
+
 
 check_table_exists_sql_query = """SHOW TABLES LIKE %s"""
 
