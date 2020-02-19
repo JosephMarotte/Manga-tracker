@@ -3,6 +3,7 @@ import logging
 from manga_tracker.users.users import Users
 from manga_tracker.users.create_feed_from_manga_list import create_feed
 from manga_tracker.manga_site.manga_website_name_to_website_class import get_class_of_website
+from manga_tracker.manga_site.base_manga_site_model.base_manga_site import BaseMangaSite
 
 # command name
 create_user = "create_user"
@@ -32,7 +33,6 @@ parser_create_user = subparsers.add_parser(create_user, help="Create a new user"
 parser_change_language_pref_order = subparsers.add_parser(change_language_pref_order, help="Change language preference for a user")
 parser_change_language_pref_order.add_argument(user_id)
 parser_change_language_pref_order.add_argument(language_pref_order, nargs='+')
-
 
 parser_change_website_pref_order = subparsers.add_parser(change_website_pref_order, help="Change website preference for a user")
 parser_change_website_pref_order.add_argument(user_id)
@@ -64,7 +64,7 @@ def main():
         u.rank_language_pref(args.language_pref_order)
     elif args.command == change_website_pref_order:
         u = Users(args.user_id)
-        u.rank_website_pref(args.website_pref_order)
+        u.rank_website_name_pref(args.website_pref_order)
     elif args.command == add_followed_manga:
         u = Users(args.user_id)
         u.add_new_followed_manga_list(args.title_or_manga_id_list)
@@ -79,6 +79,8 @@ def main():
                 website_class.populate_database()
             else:
                 print("Website {} is not in not handled by our project yet".format(website_name))
+        # TODO can only have one process.start() for the crawler, try to do this in cleaner way
+        BaseMangaSite.process.start()
 
 
 if __name__ == '__main__':

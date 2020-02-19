@@ -9,6 +9,7 @@ class BaseMangaSite:
     base_manga_site = None
     basic_manga_site_database_query = None
     basic_manga_site_spider = None
+    process = CrawlerProcess()
 
     @classmethod
     def create_table(cls):
@@ -18,9 +19,7 @@ class BaseMangaSite:
     @classmethod
     def populate_database(cls):
         cls.create_table()
-        process = CrawlerProcess()
-        process.crawl(cls.basic_manga_site_spider)
-        process.start()
+        cls.process.crawl(cls.basic_manga_site_spider)
 
     @classmethod
     def get_full_chapter_url(cls, base_manga_site_manga_id, volume_number, chapter_number):
