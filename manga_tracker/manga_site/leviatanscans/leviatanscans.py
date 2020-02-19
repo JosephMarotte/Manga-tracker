@@ -5,16 +5,16 @@ from manga_tracker.manga_site.base_manga_site_model.base_manga_site_database_que
 LEVIATANSCANS = "leviatanscans"
 
 
-class Leviatanscans(BaseMangaSite):
-    base_manga_site = LEVIATANSCANS
-
-
 class LeviatanscansDatabaseQuery(BaseMangaSiteDatabaseQueryDatabaseQuery):
     base_manga_site = LEVIATANSCANS
+
+
+class Leviatanscans(BaseMangaSite):
+    base_manga_site = LEVIATANSCANS
+    basic_manga_site_database_query = LeviatanscansDatabaseQuery
 
 
 class LeviatanscansSpider(BaseMangaSiteSpider):
     name = LEVIATANSCANS
     start_urls = ['https://leviatanscans.com/comics']
-
     basic_manga_site_database_query = LeviatanscansDatabaseQuery
