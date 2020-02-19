@@ -22,7 +22,7 @@ title_or_manga_id_list = "title_or_manga_id_list"
 website_name_list = "website_name_list"
 
 
-parser = argparse.ArgumentParser(prog='manga_tracker', add_help=False)
+parser = argparse.ArgumentParser(prog='manga_tracker')
 subparsers = parser.add_subparsers(dest=command)
 parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
 
