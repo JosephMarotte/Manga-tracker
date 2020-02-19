@@ -5,7 +5,7 @@ connection = MangatrackerDatabase().instance.connection
 
 
 class Users:
-    def __init__(self, user_id = None):
+    def __init__(self, user_id=None):
         if user_id is None:
             self.user_id = Users.add_user_to_database()
             self.rank_website_pref([1])
@@ -24,14 +24,38 @@ class Users:
         logging.info("The new user id is %d")
         return user_id
 
-    def add_new_followed_manga_list(self, manga_id_list):
-        for manga_id in manga_id_list:
-            self.add_new_followed_manga(manga_id)
-
-    def add_new_followed_manga(self, manga_id):
-        logging.info("Adding manga_id %d to the followed manga of user %d" % (manga_id, self.user_id))
+    def add_new_followed_manga_id(self, manga_id):
+        logging.info("Adding manga_id {} to the followed manga of user {}".format(manga_id, self.user_id))
         with connection.cursor() as cursor:
             users_database_query.insert_followed_manga(self.user_id, manga_id, "0.0", 0, cursor)
+
+    def add_new_followed_manga_name(self, title):
+        # retrieve manga_id for this manga
+        title = title.lower()
+        logging.info("Retrieving manga_id for manga {}".format(title))
+        with connection.cursor() as cursor:
+            sql = """SELECT manga_id
+                     FROM manga_id_to_english_title
+                     WHERE title = %s"""
+            cursor.execute(sql, title)
+            manga_id = cursor.fetchone()
+            if manga_id is None:
+                logging.info("Manga {} is not in our database".format(title))
+            else:
+                manga_id = int(manga_id['manga_id'])
+                logging.info("Manga {} has id {}".format(title, manga_id))
+                self.add_new_followed_manga_id(manga_id)
+
+    def add_new_followed_manga_list(self, title_or_manga_id_list):
+        for title_or_manga_id in title_or_manga_id_list:
+            self.add_new_followed_manga(title_or_manga_id)
+
+    def add_new_followed_manga(self, title_or_manga_id):
+        title_or_manga_id = str(title_or_manga_id)
+        if title_or_manga_id.isdigit():
+            self.add_new_followed_manga_id(int(title_or_manga_id))
+        else:
+            self.add_new_followed_manga_name(title_or_manga_id)
 
     def change_followed_manga(self, manga_id, new_volume_number, new_chapter_number):
         logging.info("Changing last volume number and chapter number for manga_id %d of user %d" % (manga_id, self.user_id))
@@ -80,7 +104,7 @@ class Users:
                                  SELECT mici.chapter_id, MIN(uwp.pref_order) as score
                                  FROM users u, user_followed_manga ufm, user_language_pref ulp, user_website_pref uwp, manga_id_to_chapter_id mici,
                                       chapter_id_to_resource_id ciri
-                                 WHERE u.user_id = %d AND
+                                 WHERE u.user_id = {user_id} AND
                                       ufm.user_id = u.user_id AND
                                       ulp.user_id = u.user_id AND
                                       uwp.user_id = u.user_id AND
@@ -90,7 +114,7 @@ class Users:
                                       ciri.website_id = uwp.website_id
                                  GROUP BY mici.chapter_id
                                ) best_score
-                     WHERE u.user_id = %d AND
+                     WHERE u.user_id = {user_id} AND
                           ufm.user_id = u.user_id AND
                           ulp.user_id = u.user_id AND
                           uwp.user_id = u.user_id AND
@@ -102,7 +126,7 @@ class Users:
                           best_score.chapter_id = ciri.chapter_id
                      GROUP BY mici.chapter_id
                      ) best_score
-            WHERE u.user_id = %d AND
+            WHERE u.user_id = {user_id} AND
                   ufm.user_id = u.user_id AND
                   ulp.user_id = u.user_id AND
                   uwp.user_id = u.user_id AND
@@ -117,10 +141,7 @@ class Users:
                   best_score.score = ulp.pref_order AND
                   miet.manga_id = mici.manga_id
             GROUP BY mici.chapter_id
-            """ % (self.user_id, self.user_id, self.user_id)
+            """.format(user_id=self.user_id)
         with connection.cursor() as cursor:
-            from pprint import pprint
             cursor.execute(sql)
-            result = cursor.fetchall()
-            pprint(result)
-            return result
+            return cursor.fetchall()

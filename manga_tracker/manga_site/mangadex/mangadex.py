@@ -10,11 +10,14 @@ connection = MangatrackerDatabase().instance.connection
 
 MANGADEX = "mangadex"
 
+# TODO : set logger level at function call level
+logging.getLogger().setLevel(logging.INFO)
+
 
 class Mangadex:
     site_rate_limit = 450
     over_time = 600
-    decorate_get_request([(site_rate_limit, over_time), "mangadex.org"])
+    decorate_get_request([(site_rate_limit, over_time)], "mangadex.org")
     # TODO automatically generate website id first time class is seen
     website_id_mangadex = 1
 
@@ -43,7 +46,7 @@ class Mangadex:
             return Mangadex.get_full_chapter_url(mangadex_chapter_id)
 
     @staticmethod
-    def get_new_data():
+    def populate_database():
         with connection.cursor() as cursor:
             max_manga_id = mangadex_database_query.get_max_mangadex_manga_id(cursor)
             max_chapter_id = mangadex_database_query.get_max_mangadex_chapter_id(cursor)
@@ -66,6 +69,7 @@ class Mangadex:
         :param mangadex_manga_id: The mangadex manga id to retrieve data for
         :return: whether there is a next manga to process or not
         """
+        # TODO add error handling with setRateLimit
         r = requests.get(Mangadex.get_full_title_api_url(mangadex_manga_id), auth=('users', 'pass'))
         if r.status_code == 200:
             manga_data = json.loads(r.text)
@@ -137,4 +141,3 @@ class Mangadex:
                                                                                            mangadex_chapter_id,
                                                                                            cursor)
         return True
-

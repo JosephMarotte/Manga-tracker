@@ -64,7 +64,7 @@ get_max_mangadex_manga_id_sql_query = """SELECT max(manga_id_mangadex) as max_ma
 def get_max_mangadex_manga_id(cursor):
     logging.info("Get maximum mangadex_manga_id")
     cursor.execute(get_max_mangadex_manga_id_sql_query)
-    max_id = cursor.fetchone["max_mangadex_manga_id"]
+    max_id = cursor.fetchone()["max_mangadex_manga_id"]
     max_id = 0 if max_id is None else max_id
     logging.info("Maximum mangadex_manga_id is %d" % max_id)
     return max_id
@@ -77,7 +77,7 @@ get_max_mangadex_chapter_id_sql_query = """SELECT max(mangadex_chapter_id) as ma
 def get_max_mangadex_chapter_id(cursor):
     logging.info("Get maximum mangadex_chapter_id")
     cursor.execute(get_max_mangadex_chapter_id_sql_query)
-    max_id = cursor.fetchone["max_mangadex_manga_id"]
+    max_id = cursor.fetchone()["max_mangadex_chapter_id"]
     max_id = 0 if max_id is None else max_id
     logging.info("Maximum mangadex_chapter_id is %d" % max_id)
     return max_id
