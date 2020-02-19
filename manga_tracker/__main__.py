@@ -1,32 +1,7 @@
 import argparse
 from manga_tracker.users.users import Users
-from manga_tracker.users.users import Users
 from manga_tracker.users.create_feed_from_manga_list import create_feed
 from manga_tracker.manga_site.manga_website_name_to_website_class import get_class_of_website
-from scrapy.crawler import CrawlerProcess
-from manga_tracker.manga_site.zeroscans.zeroscans import ZeroscansSpider
-from manga_tracker.manga_site.leviatanscans.leviatanscans import LeviatanscansSpider
-
-
-# from scrapy.crawler import CrawlerProcess
-# from manga_tracker.manga_site.zeroscans.zeroscans import ZeroscansSpider
-# process = CrawlerProcess()
-# print("ici")
-# process.crawl(LeviatanscansSpider)
-# # process.crawl(ZeroscansSpider)
-# process.start()
-#
-# a = Users(10)
-# a.add_new_followed_manga(140)
-# a.rank_website_pref([3, 2, 1])
-# a.rank_language_pref(['eng'])
-# r = a.retrieve_followed_manga()
-# s = create_feed(r)
-
-#Mangadex.get_title_data(7139)
-#pprint(r)
-# pprint(s)
-#print(len(r))
 
 # command name
 create_user = "create_user"
