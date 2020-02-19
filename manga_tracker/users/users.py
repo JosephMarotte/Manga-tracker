@@ -8,8 +8,6 @@ class Users:
     def __init__(self, user_id=None):
         if user_id is None:
             self.user_id = Users.add_user_to_database()
-            self.rank_website_pref([1])
-            self.rank_language_pref(["eng"])
         else:
             self.user_id = user_id
 
@@ -21,7 +19,7 @@ class Users:
             cursor.execute(sql)
             user_id = cursor.lastrowid
         connection.commit()
-        logging.info("The new user id is %d")
+        logging.info("The new user id is {}".format(user_id))
         return user_id
 
     def add_new_followed_manga_id(self, manga_id):

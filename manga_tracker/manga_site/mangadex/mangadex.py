@@ -10,9 +10,6 @@ connection = MangatrackerDatabase().instance.connection
 
 MANGADEX = "mangadex"
 
-# TODO : set logger level at function call level
-logging.getLogger().setLevel(logging.INFO)
-
 
 class Mangadex:
     site_rate_limit = 450
