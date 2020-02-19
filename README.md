@@ -4,7 +4,7 @@ Provided a list of manga a list of manga with the last chapter read the program
 should be able to retrieve whether there are new chapter to read for each of these
 manga.
 
-## Command line interface
+## Command line interface
 
 The command line use [argparse](https://docs.python.org/3/library/argparse.html) library.
 `python3 -m manga_tracker -h` shows the list of commands.
