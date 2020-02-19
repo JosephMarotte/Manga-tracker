@@ -5,15 +5,16 @@ from manga_tracker.manga_site.mangadex.mangadex_utils import mangadex_abbr_to_ma
 from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
 from manga_tracker.database import database_query
 from manga_tracker.manga_site.mangadex import mangadex_database_query
-
+from manga_tracker.requests_with_site_rate_limit.requests_with_site_rate_limit import decorate_get_request
 connection = MangatrackerDatabase().instance.connection
 
 MANGADEX = "mangadex"
 
 
 class Mangadex:
-    # TODO take into account this siteRateLimit
-    siteRateLimit = 450  # 450 in 600s
+    site_rate_limit = 450
+    over_time = 600
+    decorate_get_request([(site_rate_limit, over_time), "mangadex.org"])
     # TODO automatically generate website id first time class is seen
     website_id_mangadex = 1
 
