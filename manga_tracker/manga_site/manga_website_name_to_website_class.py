@@ -1,5 +1,6 @@
 from manga_tracker.manga_site.leviatanscans.leviatanscans import Leviatanscans
 from manga_tracker.manga_site.zeroscans.zeroscans import Zeroscans
+from manga_tracker.manga_site.reaperscans.reaperscans import Reaperscans
 from manga_tracker.manga_site.mangadex.mangadex import Mangadex
 
 

@@ -101,7 +101,7 @@ class Users:
             FROM users u, user_followed_manga ufm, user_language_pref ulp, user_website_pref uwp, manga_id_to_chapter_id mici,
                  chapter_id_to_resource_id ciri, manga_id_to_english_title miet
                  JOIN (
-                     SELECT mici.chapter_id, MIN(ulp.pref_order) as score
+                     SELECT mici.chapter_id, MIN(ulp.pref_order) as score_language, best_score.score as score_website
                      FROM users u, user_followed_manga ufm, user_language_pref ulp, user_website_pref uwp, manga_id_to_chapter_id mici,
                           chapter_id_to_resource_id ciri
                           JOIN (
@@ -142,10 +142,13 @@ class Users:
                   ciri.language_abbr = ulp.language_abbr AND
                   ciri.website_id = uwp.website_id AND
                   best_score.chapter_id = ciri.chapter_id AND
-                  best_score.score = ulp.pref_order AND
+                  best_score.score_language = ulp.pref_order AND
+                  best_score.score_website = uwp.pref_order AND
                   miet.manga_id = mici.manga_id
             GROUP BY mici.chapter_id
             """.format(user_id=self.user_id)
         with connection.cursor() as cursor:
             cursor.execute(sql)
             return cursor.fetchall()
+
+

@@ -40,7 +40,7 @@ class BaseMangaSiteSpider(scrapy.Spider):
                                                                              leviathanscans_manga_id,
                                                                              cursor)
         # add every chapter to the database
-        for chapter_url in response.xpath("//a[contains(text(), 'Chapter')]/@href").extract():
+        for chapter_url in response.xpath("//div[@class='flex']/a[@class='item-author text-color ']/@href").extract():
             chapter_url = chapter_url.split("/")
             chapter_data = {'manga_id': mangatracker_manga_id,
                             'volume': chapter_url[-2],
