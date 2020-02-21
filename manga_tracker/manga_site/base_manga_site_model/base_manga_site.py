@@ -4,12 +4,17 @@ from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
 
 connection = MangatrackerDatabase().instance.connection
 
+custom_settings = {
+    'LOG_LEVEL': 'CRITICAL',
+    'LOG_ENABLED': False
+}
+
 
 class BaseMangaSite:
     base_manga_site = None
     basic_manga_site_database_query = None
     basic_manga_site_spider = None
-    process = CrawlerProcess()
+    process = None
 
     @classmethod
     def create_table(cls):
@@ -18,6 +23,8 @@ class BaseMangaSite:
 
     @classmethod
     def populate_database(cls):
+        if cls.process is None:
+            BaseMangaSite.process = CrawlerProcess(settings=custom_settings)
         cls.create_table()
         cls.process.crawl(cls.basic_manga_site_spider)
 

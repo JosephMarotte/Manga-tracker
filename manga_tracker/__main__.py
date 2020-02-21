@@ -55,9 +55,12 @@ def main():
 
     if args.verbose:
         logging.getLogger().setLevel(logging.INFO)
+    else:
+        logging.disable(50)
 
     if args.command == create_user:
         u = Users()
+        logging.info("test")
         print("Your user id is {}".format(u.user_id))
     elif args.command == change_language_pref_order:
         u = Users(args.user_id)
@@ -80,7 +83,8 @@ def main():
             else:
                 print("Website {} is not in not handled by our project yet".format(website_name))
         # TODO can only have one process.start() for the crawler, try to do this in cleaner way
-        BaseMangaSite.process.start()
+        if BaseMangaSite.process is not None:
+            BaseMangaSite.process.start()
 
 
 if __name__ == '__main__':
