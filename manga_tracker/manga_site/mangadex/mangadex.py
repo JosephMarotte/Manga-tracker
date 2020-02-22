@@ -111,6 +111,9 @@ class Mangadex:
                     return False
                 elif r.status_code == 410:
                     return True
+                elif r.status_code == 429:
+                    logging.info("Sleeping for {} seconds".format(r.time_to_wait))
+                    time.sleep(r.time_to_wait)
                 logging.info("Chapter data of chapter %d were retrieved" % mangadex_chapter_id)
 
             # In some case volume and chapter are empty (for example for oneshots). Artificially build it.
