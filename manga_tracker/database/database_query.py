@@ -1,5 +1,6 @@
 import logging
 from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
+from manga_tracker.matching_between_website_and_website_id import WebsiteMatching
 
 
 # SELECT QUERY
@@ -86,3 +87,17 @@ def insert_chapter_id_to_resource_id(chapter_id, website_id, language_abbr, curs
     logging.info("Chapter %s website %s language_abbr %s was added with resource_id %d"
                  % (chapter_id, website_id, language_abbr, resource_id))
     return resource_id
+
+
+insert_website_sql_query = """INSERT into website_to_id_website(website_id, website_name) VALUES (%s, %s)"""
+
+
+def insert_new_website(website_name, cursor):
+    if website_name not in WebsiteMatching().website_to_website_id:
+        logging.info("Adding website %s".format(website_name))
+        # TODO change to auto increment
+        website_id = max(WebsiteMatching().website_id_to_website.keys()) + 1
+        cursor.execute(insert_website_sql_query, (website_id, website_name))
+        WebsiteMatching.add_website(website_name, website_id)
+        MangatrackerDatabase().connection.commit()
+        logging.info("Website %s added".format(website_name))

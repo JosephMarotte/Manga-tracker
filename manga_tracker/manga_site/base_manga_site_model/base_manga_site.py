@@ -1,6 +1,7 @@
 import logging
 from scrapy.crawler import CrawlerProcess
 from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
+from manga_tracker.database import database_query
 
 MangatrackerDatabase = MangatrackerDatabase()
 
@@ -20,6 +21,7 @@ class BaseMangaSite:
     def create_table(cls):
         with MangatrackerDatabase.connection.cursor() as cursor:
             cls.basic_manga_site_database_query.create_table_mangatracker_manga_id_to_base_manga_site_manga_id(cursor)
+            database_query.insert_new_website(cls.base_manga_site, cursor)
 
     @classmethod
     def populate_database(cls):

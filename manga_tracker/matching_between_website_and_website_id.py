@@ -1,21 +1,38 @@
-# Element should always be added at the bottom of the list to not change the order of the previous elements
-# TODO remove dummy_website by re-initializing database and having mangadex having id = 0
-website_names = [
-                "dummy_website",
-                "mangadex",
-                "leviatanscans",
-                "zeroscans",
-                "reaperscans"
-                ]
+from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
 
-name_already_seen = set()
-unique_website_name = []
-for website_name in website_names:
-    if website_name not in name_already_seen:
-        unique_website_name.append(website_name)
-        name_already_seen.add(website_name)
 
-website_names = unique_website_name
+class WebsiteMatching:
+    get_table_query = """SELECT * from website_to_id_website"""
 
-website_id_to_website = {i: website_name for (i, website_name) in enumerate(website_names)}
-website_to_website_id = {website_name: i for (i, website_name) in enumerate(website_names)}
+    dict_loaded = False
+
+    _website_to_website_id = {}
+    _website_id_to_website = {}
+
+    @property
+    def website_to_website_id(self):
+        WebsiteMatching.update_dict()
+        return WebsiteMatching._website_to_website_id
+
+    @property
+    def website_id_to_website(self):
+        WebsiteMatching.update_dict()
+        return WebsiteMatching._website_id_to_website
+
+    @classmethod
+    def update_dict(cls):
+        if not cls.dict_loaded:
+            cls.dict_loaded = True
+            with MangatrackerDatabase().connection.cursor() as cursor:
+                cursor.execute(cls.get_table_query)
+                result = cursor.fetchall()
+                for e in result:
+                    website_id = e["website_id"]
+                    website_name = e["website_name"]
+                    cls._website_to_website_id[website_name] = website_id
+                    cls._website_id_to_website[website_id] = website_name
+
+    @classmethod
+    def add_website(cls, website, website_id):
+        cls._website_id_to_website[website_id] = website
+        cls._website_to_website_id[website] = website_id

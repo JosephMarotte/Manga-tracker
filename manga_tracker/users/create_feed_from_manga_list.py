@@ -1,5 +1,5 @@
 from feedgen.feed import FeedGenerator
-from manga_tracker.matching_between_website_and_website_id import website_id_to_website
+from manga_tracker.matching_between_website_and_website_id import WebsiteMatching
 from manga_tracker.manga_site.manga_website_name_to_website_class import get_class_of_website
 
 
@@ -19,7 +19,7 @@ def create_feed(chapter_list, output_file):
 
 def build_feed_entry(fg, chapter):
     # retrieve the website and its class the chapter belongs to
-    class_name = website_id_to_website[chapter["website_id"]]
+    class_name = WebsiteMatching().website_id_to_website[chapter["website_id"]]
     website_class = get_class_of_website(class_name)
 
     # build chapter link from the website class

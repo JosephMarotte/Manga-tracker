@@ -1,5 +1,5 @@
 import scrapy
-from manga_tracker.matching_between_website_and_website_id import website_to_website_id
+from manga_tracker.matching_between_website_and_website_id import WebsiteMatching
 from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
 from manga_tracker.database import database_query
 
@@ -53,6 +53,6 @@ class BaseMangaSiteSpider(scrapy.Spider):
                 mangatracker_chapter_id = database_query.insert_manga_id_to_chapter_id(*function_arg)
 
             if check_if_already_in_database:
-                function_arg = mangatracker_chapter_id, website_to_website_id[self.name], 'eng', cursor
+                function_arg = mangatracker_chapter_id, WebsiteMatching().website_to_website_id[self.name], 'eng', cursor
                 if not self.basic_manga_site_database_query.check_if_chapter_already_in_database(*function_arg):
                     database_query.insert_chapter_id_to_resource_id(*function_arg)

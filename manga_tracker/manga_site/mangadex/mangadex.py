@@ -6,6 +6,7 @@ from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
 from manga_tracker.database import database_query
 from manga_tracker.manga_site.mangadex import mangadex_database_query
 from manga_tracker.requests_with_site_rate_limit.requests_with_site_rate_limit import decorate_get_request
+from manga_tracker.matching_between_website_and_website_id import WebsiteMatching
 
 MANGADEX = "mangadex"
 
@@ -15,7 +16,7 @@ class Mangadex:
     over_time = 600
     decorate_get_request([(site_rate_limit, over_time)], "mangadex.org")
     # TODO automatically generate website id first time class is seen
-    website_id_mangadex = 1
+    # website_id_mangadex = 1
 
     @staticmethod
     def get_full_title_url(mangadex_title_id):
@@ -44,6 +45,7 @@ class Mangadex:
     @staticmethod
     def populate_database():
         with MangatrackerDatabase().connection.cursor() as cursor:
+            database_query.insert_new_website(MANGADEX, cursor)
             max_manga_id = mangadex_database_query.get_max_mangadex_manga_id(cursor)
             max_chapter_id = mangadex_database_query.get_max_mangadex_chapter_id(cursor)
         Mangadex.get_new_title_data(max_manga_id + 1)
@@ -131,7 +133,8 @@ class Mangadex:
             if mangatracker_chapter_id is None:
                 mangatracker_chapter_id = database_query.insert_manga_id_to_chapter_id(*function_arg)
             language_abbr = mangadex_abbr_to_mangatracker_abbr(chapter_data["lang_code"])
-            function_arg = mangatracker_chapter_id, Mangadex.website_id_mangadex, language_abbr, cursor
+            website_id_mangadex = WebsiteMatching().website_to_website_id[MANGADEX]
+            function_arg = mangatracker_chapter_id, website_id_mangadex, language_abbr, cursor
             mangatracker_resource_id = database_query.insert_chapter_id_to_resource_id(*function_arg)
             mangadex_database_query.insert_mangatracker_resource_id_to_mangadex_chapter_id(mangatracker_resource_id,
                                                                                            mangadex_chapter_id,

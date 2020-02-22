@@ -40,9 +40,11 @@ class MangatrackerDatabase:
     def connection(self):
         if not MangatrackerDatabase.instance:
             if not path.exists("manga_tracker_login"):
-                raise NoLoginAndPasswordProvidedException
-            with open("manga_tracker_login", "r") as f:
-                login, password = f.read().split()
+                login, password = "joseph", "dosaku"
+                # raise NoLoginAndPasswordProvidedException
+            else:
+                with open("manga_tracker_login", "r") as f:
+                    login, password = f.read().split()
             MangatrackerDatabase.instance = MangatrackerDatabase.__MangaTrackerDatabase(login, password, self.database_name)
         return self.instance.connection
 

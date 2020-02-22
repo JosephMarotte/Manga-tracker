@@ -1,7 +1,7 @@
 import logging
 from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
 from manga_tracker.users import users_database_query
-from manga_tracker.matching_between_website_and_website_id import website_to_website_id
+from manga_tracker.matching_between_website_and_website_id import WebsiteMatching
 
 
 class Users:
@@ -70,7 +70,7 @@ class Users:
     # TODO maybe try to merge the code of rank_website_pref and rank_language_pref
     # TODO handle error when website name does not exists
     def rank_website_name_pref(self, website_name_ranking):
-        website_id_ranking = [website_to_website_id[website_name] for website_name in website_name_ranking]
+        website_id_ranking = [WebsiteMatching().website_to_website_id[website_name] for website_name in website_name_ranking]
         self.rank_website_pref(website_id_ranking)
 
     def rank_website_pref(self, website_id_ranking):

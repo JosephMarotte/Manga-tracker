@@ -20,7 +20,6 @@ create_database_sql_query = """CREATE DATABASE %s"""
 
 def create_database(database_name, cursor):
     logging.info("Creating database {}".format(database_name))
-    print(create_database_sql_query % database_name)
     cursor.execute(create_database_sql_query % database_name)
     logging.info("Database {} created".format(database_name))
 
