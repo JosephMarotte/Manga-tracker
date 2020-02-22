@@ -30,7 +30,7 @@ def create_initial_tables(cursor):
     with open(path + "/database_creation.sql", "r") as f:
         queries = f.read()
     for query in queries.split(";")[:-1]:
-        print(query)
+        logging.info(query)
         cursor.execute(query)
 
 

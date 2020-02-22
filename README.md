@@ -4,10 +4,45 @@ Provided a list of manga a list of manga with the last chapter read the program
 should be able to retrieve whether there are new chapter to read for each of these
 manga.
 
+## Install
+
+Our project use mysql database to store information so you need to install it
+
+`sudo apt-get install mysql-server mysql-client`
+
+If needed set MySQL root user password for the first time
+
+`sudo mysqladmin -u root password NEWPASSWORD`
+
+Connect to MySQL as root to setup a user for our program :
+
+`sudo mysql -u root -p`
+
+Create the user
+
+`CREATE USER 'newuser'@'localhost' IDENTIFIED BY 'password'`
+
+Grant authorization to the user
+
+`GRANT ALL PRIVILEGES ON manga_tracker.* TO 'newuser'@'localhost'`
+
+Install pip3
+
+`sudo apt-get install python3-pip`
+
+Install requirements
+
+`pip3 install -r requirements.txt`
+
 ## Command line interface
 
 The command line use [argparse](https://docs.python.org/3/library/argparse.html) library.
 `python3 -m manga_tracker -h` shows the list of commands.
+
+### `set_login_and_password` command
+
+`python3 -m manga_tracker login password`
+This command setup login and password to connect to the mysql database (you have to provide login and password you set up before)
 
 ### `create_user` command
 
@@ -40,6 +75,8 @@ This command retrieve chapter of the user's followed manga and output it under a
 This command retrieve new manga chapter on the given website.
 
 ## Execution example
+- Set mysql login and password
+`python3 -m manga_tracker login password`
 
 - Retrieve manga and chapter from [Leviatanscans](https://leviatanscans.com/) and [Zeroscans](https://zeroscans.com/) websites
 
