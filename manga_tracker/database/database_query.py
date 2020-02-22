@@ -96,7 +96,7 @@ def insert_new_website(website_name, cursor):
     if website_name not in WebsiteMatching().website_to_website_id:
         logging.info("Adding website %s".format(website_name))
         # TODO change to auto increment
-        website_id = max(WebsiteMatching().website_id_to_website.keys()) + 1
+        website_id = WebsiteMatching.next_id()
         cursor.execute(insert_website_sql_query, (website_id, website_name))
         WebsiteMatching.add_website(website_name, website_id)
         MangatrackerDatabase().connection.commit()

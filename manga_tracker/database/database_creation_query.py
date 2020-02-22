@@ -1,5 +1,5 @@
 import logging
-
+import os
 
 check_database_exists_sql_query = """SHOW DATABASES LIKE %s"""
 
@@ -25,7 +25,9 @@ def create_database(database_name, cursor):
 
 
 def create_initial_tables(cursor):
-    with open("database_creation.sql", "r") as f:
+    full_path = os.path.realpath(__file__)
+    path, filename = os.path.split(full_path)
+    with open(path + "/database_creation.sql", "r") as f:
         queries = f.read()
     for query in queries.split(";")[:-1]:
         print(query)

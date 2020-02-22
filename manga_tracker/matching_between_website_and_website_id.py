@@ -36,3 +36,8 @@ class WebsiteMatching:
     def add_website(cls, website, website_id):
         cls._website_id_to_website[website_id] = website
         cls._website_to_website_id[website] = website_id
+
+    @classmethod
+    def next_id(cls):
+        cls.update_dict()
+        return len(cls._website_id_to_website) + 1
