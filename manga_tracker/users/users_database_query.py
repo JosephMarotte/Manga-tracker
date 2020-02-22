@@ -1,10 +1,6 @@
 import logging
 from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
 
-connection = MangatrackerDatabase().instance.connection
-
-# SELECT QUERY
-
 
 # INSERT QUERY
 insert_followed_manga_sql_query = \
@@ -16,7 +12,7 @@ def insert_followed_manga(user_id, manga_id, volume_number, chapter_number, curs
     query_tuple = str(user_id), str(manga_id), str(volume_number), str(chapter_number)
     logging.info("User %s is adding manga_id %s vol %s chap %s to his followed manga" % query_tuple)
     cursor.execute(insert_followed_manga_sql_query, query_tuple)
-    connection.commit()
+    MangatrackerDatabase().connection.commit()
     logging.info("User %s added manga_id %s vol %s chap %s to his followed manga" % query_tuple)
 
 
@@ -36,7 +32,7 @@ def insert_user_pref(user_id, pref, pref_order, thing_to_order, cursor):
     else:
         new_insert_user_pref_sql_query = insert_user_language_pref_sql_query
     cursor.execute(new_insert_user_pref_sql_query, (user_id, pref, pref_order))
-    connection.commit()
+    MangatrackerDatabase().connection.commit()
     logging.info("User %s %s pref have been inserted" % (user_id, thing_to_order))
 
 
@@ -58,7 +54,7 @@ def delete_user_pref(user_id, thing_to_order, cursor):
     logging.info("Deleting user %s %s pref" % (user_id, thing_to_order))
     new_delete_user_pref_sql_query = delete_user_pref_sql_query.format(thing_to_order=thing_to_order)
     cursor.execute(new_delete_user_pref_sql_query, user_id)
-    connection.commit()
+    MangatrackerDatabase().connection.commit()
     logging.info("User %s %s pref have been deleted" % (user_id, thing_to_order))
 
 

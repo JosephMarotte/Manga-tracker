@@ -1,14 +1,20 @@
 import pymysql.cursors
+import functools
+from os import path
 from manga_tracker.database import database_creation_query
+
+
+class NoLoginAndPasswordProvidedException(Exception):
+    pass
 
 
 class MangatrackerDatabase:
     class __MangaTrackerDatabase:
-        def __init__(self, database_name="manga_tracker"):
+        def __init__(self, login, password, database_name="manga_tracker"):
             self.database_name = database_name
             self.connection = pymysql.connect(host='localhost',
-                                              user='joseph',
-                                              password='dosaku',
+                                              user=login,
+                                              password=password,
                                               charset='utf8mb4',
                                               cursorclass=pymysql.cursors.DictCursor)
             with self.connection.cursor() as cursor:
@@ -28,5 +34,20 @@ class MangatrackerDatabase:
 
     def __init__(self, database_name="manga_tracker"):
         self.database_name = database_name
+
+    @property
+    @functools.lru_cache()
+    def connection(self):
         if not MangatrackerDatabase.instance:
-            MangatrackerDatabase.instance = MangatrackerDatabase.__MangaTrackerDatabase(database_name)
+            if not path.exists("manga_tracker_login"):
+                raise NoLoginAndPasswordProvidedException
+            with open("manga_tracker_login", "r") as f:
+                login, password = f.read().split()
+            MangatrackerDatabase.instance = MangatrackerDatabase.__MangaTrackerDatabase(login, password, self.database_name)
+        return self.instance.connection
+
+    @staticmethod
+    def set_login_and_password(login, password):
+        with open("manga_tracker_login", "w") as f:
+            f.write(login + "\n")
+            f.write(password)

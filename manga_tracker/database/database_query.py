@@ -1,7 +1,6 @@
 import logging
 from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
 
-connection = MangatrackerDatabase().instance.connection
 
 # SELECT QUERY
 select_manga_id_of_title_sql_query = """SELECT manga_id
@@ -54,7 +53,7 @@ def insert_title(title, cursor):
     logging.info("Adding title %s to the database" % title)
     cursor.execute(insert_title_sql_query, title)
     mangatracker_manga_id = cursor.lastrowid
-    connection.commit()
+    MangatrackerDatabase().connection.commit()
     logging.info("The title %s has been added to the database with id %d" % (title, mangatracker_manga_id))
     return mangatracker_manga_id
 
@@ -67,7 +66,7 @@ def insert_manga_id_to_chapter_id(manga_id, volume, chapter, cursor):
     manga_id, volume, chapter = str(manga_id), str(volume), str(chapter)
     logging.info("Adding manga %s volume %s chapter %s to the database")
     cursor.execute(insert_manga_id_to_chapter_id_sql_query, (manga_id, volume, chapter))
-    connection.commit()
+    MangatrackerDatabase().connection.commit()
     chapter_id = cursor.lastrowid
     logging.info("Manga %s volume %s chapter %s was added with chapter id %d" % (manga_id, volume, chapter, chapter_id))
     return chapter_id
@@ -83,7 +82,7 @@ def insert_chapter_id_to_resource_id(chapter_id, website_id, language_abbr, curs
     logging.info("Adding resource for chapter %s website %s language_abbr %s" % (chapter_id, website_id, language_abbr))
     cursor.execute(insert_chapter_id_to_resource_id_sql_query, (chapter_id, website_id, language_abbr))
     resource_id = cursor.lastrowid
-    connection.commit()
+    MangatrackerDatabase().connection.commit()
     logging.info("Chapter %s website %s language_abbr %s was added with resource_id %d"
                  % (chapter_id, website_id, language_abbr, resource_id))
     return resource_id

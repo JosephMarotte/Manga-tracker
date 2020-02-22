@@ -1,7 +1,6 @@
 import logging
 from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
 
-connection = MangatrackerDatabase().instance.connection
 
 # SELECT QUERY
 select_mangadex_chapter_id_from_resource_id_sql_query = """SELECT mangadex_chapter_id
@@ -93,7 +92,7 @@ def insert_mangatracker_manga_id_to_mangadex_manga_id(mangatracker_manga_id, man
     query_tuple = str(mangatracker_manga_id), str(mangadex_manga_id)
     logging.info("Adding matching between mangatracker_manga_id %s and mangadex_manga_id %s" % query_tuple)
     cursor.execute(insert_mangatracker_manga_id_to_mangadex_manga_id_sql_query, query_tuple)
-    connection.commit()
+    MangatrackerDatabase().connection.commit()
     logging.info("Matching between mangatracker_manga_id %s and mangadex_manga_id %s added" % query_tuple)
 
 
@@ -106,5 +105,5 @@ def insert_mangatracker_resource_id_to_mangadex_chapter_id(resource_id, mangadex
     query_tuple = str(resource_id), str(mangadex_chapter_id)
     logging.info("Add binding between the resource id %s and the mangadex chapter id %s" % query_tuple)
     cursor.execute(insert_mangatracker_resource_id_to_mangadex_chapter_id_sql_query, query_tuple)
-    connection.commit()
+    MangatrackerDatabase().connection.commit()
     logging.info("Binding between the resource id %s and the mangadex chapter id %s was added" % query_tuple)

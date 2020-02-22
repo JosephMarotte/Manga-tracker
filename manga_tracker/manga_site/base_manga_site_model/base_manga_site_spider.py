@@ -3,8 +3,6 @@ from manga_tracker.matching_between_website_and_website_id import website_to_web
 from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
 from manga_tracker.database import database_query
 
-connection = MangatrackerDatabase().instance.connection
-
 
 class BaseMangaSiteSpider(scrapy.Spider):
     name = "base_manga_site_model"
@@ -26,7 +24,7 @@ class BaseMangaSiteSpider(scrapy.Spider):
             yield response.follow(next_comics_page_number, callback=self.parse)
 
     def parse_manga_page(self, response):
-        with connection.cursor() as cursor:
+        with MangatrackerDatabase().connection.cursor() as cursor:
             leviathanscans_manga_id = response.url.split("/")[-1]
             mangatracker_manga_id = self.basic_manga_site_database_query. \
                 select_mangatracker_manga_id_from_base_manga_site_manga_id(leviathanscans_manga_id, cursor)
@@ -48,7 +46,7 @@ class BaseMangaSiteSpider(scrapy.Spider):
             self.get_chapter_data_to_database(chapter_data)
 
     def get_chapter_data_to_database(self, chapter_data, check_if_already_in_database=True):
-        with connection.cursor() as cursor:
+        with MangatrackerDatabase().connection.cursor() as cursor:
             function_arg = chapter_data['manga_id'], chapter_data['volume'], chapter_data['chapter'], cursor
             mangatracker_chapter_id = database_query.select_chapter_id_from_manga_volume_chapter(*function_arg)
             if mangatracker_chapter_id is None:

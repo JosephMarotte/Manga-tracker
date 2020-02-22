@@ -1,7 +1,6 @@
 import logging
 from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
 from manga_tracker.database.database_creation_query import check_table_exists
-connection = MangatrackerDatabase().instance.connection
 
 
 class BaseMangaSiteDatabaseQueryDatabaseQuery:
@@ -89,6 +88,6 @@ class BaseMangaSiteDatabaseQueryDatabaseQuery:
             base_manga_site=cls.base_manga_site) % query_tuple)
         sql_query = cls.insert_mangatracker_manga_id_to_base_manga_site_manga_id_sql_query()
         cursor.execute(sql_query, query_tuple)
-        connection.commit()
+        MangatrackerDatabase().connection.commit()
         logging.info("Matching between mangatracker_manga_id %s and {base_manga_site}s_manga_id %s was added".format(
             base_manga_site=cls.base_manga_site) % query_tuple)

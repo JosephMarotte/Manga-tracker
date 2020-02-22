@@ -1,5 +1,6 @@
 import argparse
 import logging
+from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
 from manga_tracker.users.users import Users
 from manga_tracker.users.create_feed_from_manga_list import create_feed
 from manga_tracker.manga_site.manga_website_name_to_website_class import get_class_of_website
@@ -7,6 +8,7 @@ from manga_tracker.manga_site.base_manga_site_model.base_manga_site import BaseM
 
 # command name
 create_user = "create_user"
+set_database_login_password = "set_database_login_password"
 change_language_pref_order = "change_language_pref_order"
 change_website_pref_order = "change_website_pref_order"
 add_followed_manga = "add_followed_manga"
@@ -21,6 +23,8 @@ language_pref_order = "language_pref_order"
 website_pref_order = "website_pref_order"
 title_or_manga_id_list = "title_or_manga_id_list"
 website_name_list = "website_name_list"
+login = "login"
+password = "password"
 
 
 parser = argparse.ArgumentParser(prog='manga_tracker')
@@ -29,6 +33,10 @@ parser.add_argument("-v", "--verbose", help="increase output verbosity", action=
 
 
 parser_create_user = subparsers.add_parser(create_user, help="Create a new user")
+
+parser_set_database_login_password = subparsers.add_parser(set_database_login_password, help="Set login and password for the database")
+parser_set_database_login_password.add_argument(login)
+parser_set_database_login_password.add_argument(password)
 
 parser_change_language_pref_order = subparsers.add_parser(change_language_pref_order, help="Change language preference for a user")
 parser_change_language_pref_order.add_argument(user_id)
@@ -60,8 +68,9 @@ def main():
 
     if args.command == create_user:
         u = Users()
-        logging.info("test")
         print("Your user id is {}".format(u.user_id))
+    elif args.command == set_database_login_password:
+        MangatrackerDatabase.set_login_and_password(args.login, args.password)
     elif args.command == change_language_pref_order:
         u = Users(args.user_id)
         u.rank_language_pref(args.language_pref_order)

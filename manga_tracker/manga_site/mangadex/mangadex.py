@@ -6,7 +6,6 @@ from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
 from manga_tracker.database import database_query
 from manga_tracker.manga_site.mangadex import mangadex_database_query
 from manga_tracker.requests_with_site_rate_limit.requests_with_site_rate_limit import decorate_get_request
-connection = MangatrackerDatabase().instance.connection
 
 MANGADEX = "mangadex"
 
@@ -36,7 +35,7 @@ class Mangadex:
 
     @staticmethod
     def retrieve_chapter_url(chapter):
-        with connection.cursor() as cursor:
+        with MangatrackerDatabase().connection.cursor() as cursor:
             resource_id = chapter["resource_id"]
             mangadex_chapter_id = mangadex_database_query.select_mangadex_chapter_id_from_resource_id(resource_id,
                                                                                                       cursor)
@@ -44,7 +43,7 @@ class Mangadex:
 
     @staticmethod
     def populate_database():
-        with connection.cursor() as cursor:
+        with MangatrackerDatabase().connection.cursor() as cursor:
             max_manga_id = mangadex_database_query.get_max_mangadex_manga_id(cursor)
             max_chapter_id = mangadex_database_query.get_max_mangadex_chapter_id(cursor)
         Mangadex.get_new_title_data(max_manga_id + 1)
@@ -72,7 +71,7 @@ class Mangadex:
             manga_data = json.loads(r.text)
             title = manga_data['manga']['title'].lower()
 
-            with connection.cursor() as cursor:
+            with MangatrackerDatabase().connection.cursor() as cursor:
                 if not mangadex_database_query.check_if_mangadex_manga_id_is_in_database(mangadex_manga_id, cursor):
                     mangatracker_manga_id = database_query.select_manga_id_of_title(title, cursor)
                     if mangatracker_manga_id is None:
@@ -95,7 +94,7 @@ class Mangadex:
     @staticmethod
     def get_chapter_data_to_database(mangadex_chapter_id, check_if_already_in_database=True, chapter_data=None):
         """ Retrieving chapter data when we read manga data with the API """
-        with connection.cursor() as cursor:
+        with MangatrackerDatabase().connection.cursor() as cursor:
             if check_if_already_in_database:
                 if mangadex_database_query.check_if_mangadex_chapter_id_is_in_database(mangadex_chapter_id, cursor):
                     return True

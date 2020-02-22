@@ -2,7 +2,6 @@ import logging
 from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
 from manga_tracker.users import users_database_query
 from manga_tracker.matching_between_website_and_website_id import website_to_website_id
-connection = MangatrackerDatabase().instance.connection
 
 
 class Users:
@@ -15,24 +14,24 @@ class Users:
     @staticmethod
     def add_user_to_database():
         logging.info("Adding new user to the database")
-        with connection.cursor() as cursor:
+        with MangatrackerDatabase().connection.cursor() as cursor:
             sql = "INSERT INTO users VALUES ()"
             cursor.execute(sql)
             user_id = cursor.lastrowid
-        connection.commit()
+        MangatrackerDatabase().connection.commit()
         logging.info("The new user id is {}".format(user_id))
         return user_id
 
     def add_new_followed_manga_id(self, manga_id):
         logging.info("Adding manga_id {} to the followed manga of user {}".format(manga_id, self.user_id))
-        with connection.cursor() as cursor:
+        with MangatrackerDatabase().connection.cursor() as cursor:
             users_database_query.insert_followed_manga(self.user_id, manga_id, "0.0", 0, cursor)
 
     def add_new_followed_manga_name(self, title):
         # retrieve manga_id for this manga
         title = title.lower()
         logging.info("Retrieving manga_id for manga {}".format(title))
-        with connection.cursor() as cursor:
+        with MangatrackerDatabase().connection.cursor() as cursor:
             sql = """SELECT manga_id
                      FROM manga_id_to_english_title
                      WHERE title = %s"""
@@ -58,13 +57,13 @@ class Users:
 
     def change_followed_manga(self, manga_id, new_volume_number, new_chapter_number):
         logging.info("Changing last volume number and chapter number for manga_id %d of user %d" % (manga_id, self.user_id))
-        with connection.cursor() as cursor:
+        with MangatrackerDatabase().connection.cursor() as cursor:
             sql = "UPDATE user_followed_manga " \
                   "SET next_volume_number_to_read = %d, " \
                   "    next_chapter_number_to_read = %s " \
                   "WHERE user_id = %d" % (new_volume_number, new_chapter_number, self.user_id)
             cursor.execute(sql)
-        connection.commit()
+        MangatrackerDatabase().connection.commit()
         logging.info("Last volume number was changed to %d and chapter number was changed to %s"
                      % (new_volume_number, new_chapter_number))
 
@@ -75,13 +74,13 @@ class Users:
         self.rank_website_pref(website_id_ranking)
 
     def rank_website_pref(self, website_id_ranking):
-        with connection.cursor() as cursor:
+        with MangatrackerDatabase().connection.cursor() as cursor:
             users_database_query.delete_user_website_pref(self.user_id, cursor)
             for (rank, website_id) in enumerate(website_id_ranking):
                 users_database_query.insert_user_website_pref(self.user_id, website_id, rank, cursor)
 
     def rank_language_pref(self, language_abbr_ranking):
-        with connection.cursor() as cursor:
+        with MangatrackerDatabase().connection.cursor() as cursor:
             users_database_query.delete_user_language_pref(self.user_id, cursor)
             for (rank, language_abbr) in enumerate(language_abbr_ranking):
                 users_database_query.insert_user_language_pref(self.user_id, language_abbr, rank, cursor)
@@ -147,7 +146,7 @@ class Users:
                   miet.manga_id = mici.manga_id
             GROUP BY mici.chapter_id
             """.format(user_id=self.user_id)
-        with connection.cursor() as cursor:
+        with MangatrackerDatabase().connection.cursor() as cursor:
             cursor.execute(sql)
             return cursor.fetchall()
 

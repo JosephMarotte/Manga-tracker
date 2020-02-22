@@ -2,7 +2,7 @@ import logging
 from scrapy.crawler import CrawlerProcess
 from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
 
-connection = MangatrackerDatabase().instance.connection
+MangatrackerDatabase = MangatrackerDatabase()
 
 custom_settings = {
     'LOG_LEVEL': 'CRITICAL',
@@ -18,7 +18,7 @@ class BaseMangaSite:
 
     @classmethod
     def create_table(cls):
-        with connection.cursor() as cursor:
+        with MangatrackerDatabase.connection.cursor() as cursor:
             cls.basic_manga_site_database_query.create_table_mangatracker_manga_id_to_base_manga_site_manga_id(cursor)
 
     @classmethod
@@ -35,7 +35,7 @@ class BaseMangaSite:
 
     @classmethod
     def retrieve_chapter_url(cls, chapter):
-        with connection.cursor() as cursor:
+        with MangatrackerDatabase.connection.cursor() as cursor:
             logging.info(
                 "Retrieving chapter information for resource %d of {base_manga_site}."
                 .format(base_manga_site=cls.base_manga_site) % chapter["resource_id"])
