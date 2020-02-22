@@ -1,6 +1,7 @@
 import requests
 import json
 import logging
+import time
 from manga_tracker.manga_site.mangadex.mangadex_utils import mangadex_abbr_to_mangatracker_abbr
 from manga_tracker.database.manga_tracker_database import MangatrackerDatabase
 from manga_tracker.database import database_query
@@ -15,8 +16,6 @@ class Mangadex:
     site_rate_limit = 450
     over_time = 600
     decorate_get_request([(site_rate_limit, over_time)], "mangadex.org")
-    # TODO automatically generate website id first time class is seen
-    # website_id_mangadex = 1
 
     @staticmethod
     def get_full_title_url(mangadex_title_id):
@@ -67,7 +66,6 @@ class Mangadex:
         :param mangadex_manga_id: The mangadex manga id to retrieve data for
         :return: whether there is a next manga to process or not
         """
-        # TODO add error handling with setRateLimit
         r = requests.get(Mangadex.get_full_title_api_url(mangadex_manga_id), auth=('users', 'pass'))
         if r.status_code == 200:
             manga_data = json.loads(r.text)
@@ -92,6 +90,9 @@ class Mangadex:
             return False
         elif r.status_code == 410:
             return True
+        elif r.status_code == 429:
+            logging.info("Sleeping for {} seconds".format(r.time_to_wait))
+            time.sleep(r.time_to_wait)
 
     @staticmethod
     def get_chapter_data_to_database(mangadex_chapter_id, check_if_already_in_database=True, chapter_data=None):
